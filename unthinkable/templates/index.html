@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🩺 Healthcare Symptom Chat</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="chat-container">
+    <h1>🩺 Healthcare Symptom Assistant</h1>
+
+    <div id="chat-box" class="chat-box">
+      <div class="bot-msg">👋 Hi! Describe your symptoms, and I’ll suggest possible causes and next steps.</div>
+    </div>
+
+    <div class="input-area">
+      <input id="user-input" type="text" placeholder="Type your symptoms or ask a follow-up..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    let messages = [];
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      // Display user message
+      addMessage("user", text);
+      userInput.value = "";
+
+      // Send to backend
+      messages.push({ sender: "user", text });
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages })
+      });
+
+      const data = await res.json();
+      const reply = data.reply || "Error fetching response.";
+
+      // Display bot message
+      addMessage("bot", reply);
+      messages.push({ sender: "bot", text: reply });
+    }
+
+    function addMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.className = sender === "user" ? "user-msg" : "bot-msg";
+      msg.innerHTML = text.replace(/\n/g, "<br>");
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
